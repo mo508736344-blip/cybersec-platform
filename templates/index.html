@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}الصفحة الرئيسية - أدوات الأمن السيبراني{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card">
+            <div class="card-body text-center p-5">
+                <i class="fas fa-shield-alt fa-4x text-primary mb-4"></i>
+                <h1 class="card-title mb-4">مرحباً بك في منصة الأمن السيبراني</h1>
+                <p class="card-text lead mb-4">
+                    منصة تعليمية متخصصة في أدوات وتقنيات الأمن السيبراني
+                </p>
+                <p class="text-muted mb-4">
+                    نوفر أدوات احترافية لاختبار الأمان وتعلم تقنيات الحماية المتقدمة
+                </p>
+                
+                <div class="alert alert-info mb-4" id="autoScanAlert">
+                    <i class="fas fa-cog fa-spin me-2" id="scanIcon"></i>
+                    <strong>حالة الفحص:</strong> <span id="scanStatus">جاري تشغيل أدوات الفحص الأمني تلقائياً...</span>
+                    <br><small class="text-muted">للأغراض التعليمية والبحثية فقط</small>
+                </div>
+                
+                {% if not session.authenticated %}
+                <div class="d-grid gap-2 d-md-block">
+                    <a href="{{ url_for('login') }}" class="btn btn-primary btn-lg px-4">
+                        <i class="fas fa-sign-in-alt me-2"></i>تسجيل الدخول
+                    </a>
+                    <a href="{{ url_for('about') }}" class="btn btn-outline-secondary btn-lg px-4">
+                        <i class="fas fa-info-circle me-2"></i>معرفة المزيد
+                    </a>
+                </div>
+                {% else %}
+                <div class="d-grid gap-2 d-md-block">
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-primary btn-lg px-4">
+                        <i class="fas fa-tachometer-alt me-2"></i>لوحة التحكم
+                    </a>
+                    <a href="{{ url_for('educational') }}" class="btn btn-outline-primary btn-lg px-4">
+                        <i class="fas fa-graduation-cap me-2"></i>المواد التعليمية
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-5">
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-search fa-3x text-info mb-3"></i>
+                <h5 class="card-title">فحص الأمان</h5>
+                <p class="card-text">أدوات متقدمة لفحص وتحليل الثغرات الأمنية</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-graduation-cap fa-3x text-success mb-3"></i>
+                <h5 class="card-title">التعليم</h5>
+                <p class="card-text">مواد تعليمية شاملة في مجال الأمن السيبراني</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-lock fa-3x text-warning mb-3"></i>
+                <h5 class="card-title">الحماية</h5>
+                <p class="card-text">تقنيات متطورة لحماية الأنظمة والبيانات</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-5">
+    <div class="col-lg-10 mx-auto">
+        <div class="card bg-light">
+            <div class="card-body">
+                <h5 class="card-title text-center mb-4">
+                    <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                    تنبيه مهم
+                </h5>
+                <p class="text-center mb-0">
+                    <strong>هذا الموقع مخصص للأغراض التعليمية والبحثية في مجال الأمن السيبراني فقط.</strong><br>
+                    يجب استخدام الأدوات المتاحة بمسؤولية وفقط على الأنظمة التي تملك إذناً قانونياً لفحصها.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// محاكاة حالة الفحص التلقائي
+document.addEventListener('DOMContentLoaded', function() {
+    const scanIcon = document.getElementById('scanIcon');
+    const scanStatus = document.getElementById('scanStatus');
+    const autoScanAlert = document.getElementById('autoScanAlert');
+    
+    // تحديث الحالة بعد 3 ثواني
+    setTimeout(function() {
+        scanIcon.className = 'fas fa-check-circle me-2 text-success';
+        scanStatus.textContent = 'تم تشغيل أدوات الفحص الأمني بنجاح';
+        autoScanAlert.className = 'alert alert-success mb-4';
+        
+        // إخفاء الإشعار بعد 5 ثواني إضافية
+        setTimeout(function() {
+            autoScanAlert.style.transition = 'opacity 0.5s';
+            autoScanAlert.style.opacity = '0';
+            setTimeout(function() {
+                autoScanAlert.style.display = 'none';
+            }, 500);
+        }, 5000);
+    }, 3000);
+});
+</script>
+{% endblock %}

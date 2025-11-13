@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}اتصل بنا - أدوات الأمن السيبراني{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="text-center mb-5">
+            <h1><i class="fas fa-envelope me-3"></i>اتصل بنا</h1>
+            <p class="lead">نحن هنا لمساعدتك في رحلتك التعليمية في مجال الأمن السيبراني</p>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-paper-plane me-2"></i>أرسل لنا رسالة</h5>
+            </div>
+            <div class="card-body">
+                <form>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="name" class="form-label">الاسم الكامل</label>
+                            <input type="text" class="form-control" id="name" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="email" class="form-label">البريد الإلكتروني</label>
+                            <input type="email" class="form-control" id="email" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="subject" class="form-label">الموضوع</label>
+                        <select class="form-select" id="subject">
+                            <option value="">اختر الموضوع</option>
+                            <option value="support">الدعم التقني</option>
+                            <option value="training">التدريب والتعليم</option>
+                            <option value="partnership">الشراكات</option>
+                            <option value="feedback">ملاحظات واقتراحات</option>
+                            <option value="other">أخرى</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="message" class="form-label">الرسالة</label>
+                        <textarea class="form-control" id="message" rows="5" required></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-send me-2"></i>إرسال الرسالة
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-info-circle me-2"></i>معلومات الاتصال</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <i class="fas fa-envelope text-primary me-2"></i>
+                    <strong>البريد الإلكتروني:</strong><br>
+                    <small class="text-muted">info@cybersec-platform.com</small>
+                </div>
+                
+                <div class="mb-3">
+                    <i class="fas fa-phone text-success me-2"></i>
+                    <strong>الهاتف:</strong><br>
+                    <small class="text-muted">+966 11 123 4567</small>
+                </div>
+                
+                <div class="mb-3">
+                    <i class="fas fa-map-marker-alt text-danger me-2"></i>
+                    <strong>العنوان:</strong><br>
+                    <small class="text-muted">الرياض، المملكة العربية السعودية</small>
+                </div>
+                
+                <div class="mb-3">
+                    <i class="fas fa-clock text-warning me-2"></i>
+                    <strong>ساعات العمل:</strong><br>
+                    <small class="text-muted">الأحد - الخميس: 9:00 - 17:00</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5><i class="fas fa-share-alt me-2"></i>تابعنا</h5>
+            </div>
+            <div class="card-body text-center">
+                <a href="#" class="btn btn-outline-primary me-2 mb-2">
+                    <i class="fab fa-twitter"></i> Twitter
+                </a>
+                <a href="#" class="btn btn-outline-info me-2 mb-2">
+                    <i class="fab fa-linkedin"></i> LinkedIn
+                </a>
+                <a href="#" class="btn btn-outline-dark me-2 mb-2">
+                    <i class="fab fa-github"></i> GitHub
+                </a>
+                <a href="#" class="btn btn-outline-danger mb-2">
+                    <i class="fab fa-youtube"></i> YouTube
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-5">
+    <div class="col-12">
+        <div class="card bg-light">
+            <div class="card-body">
+                <h5 class="text-center mb-4">الأسئلة الشائعة</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>كيف يمكنني الحصول على حساب؟</h6>
+                        <p class="small text-muted">يمكنك التواصل معنا لطلب حساب تعليمي أو بحثي حسب احتياجاتك.</p>
+                        
+                        <h6>هل الأدوات آمنة للاستخدام؟</h6>
+                        <p class="small text-muted">جميع الأدوات مصممة للأغراض التعليمية وتتضمن إجراءات حماية متقدمة.</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>ما هي متطلبات النظام؟</h6>
+                        <p class="small text-muted">تعمل المنصة على جميع المتصفحات الحديثة وأنظمة التشغيل المختلفة.</p>
+                        
+                        <h6>كيف يمكنني الإبلاغ عن مشكلة؟</h6>
+                        <p class="small text-muted">يمكنك استخدام نموذج الاتصال أو إرسال بريد إلكتروني مباشر لفريق الدعم.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

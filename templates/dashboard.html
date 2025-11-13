@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+
+{% block title %}لوحة التحكم - أدوات الأمن السيبراني{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4><i class="fas fa-tachometer-alt me-2"></i>لوحة التحكم</h4>
+                <small>مستوى الوصول: <span class="badge bg-light text-dark">{{ user_level }}</span></small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    {% if user_level == 'admin' %}
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card border-danger">
+            <div class="card-body text-center">
+                <i class="fas fa-search fa-3x text-danger mb-3"></i>
+                <h5 class="card-title">فحص الأمان المتقدم</h5>
+                <p class="card-text">تشغيل أدوات الفحص الأمني المتقدمة</p>
+                <a href="{{ url_for('security_scan') }}" class="btn btn-danger">
+                    <i class="fas fa-play me-2"></i>بدء الفحص
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card border-warning">
+            <div class="card-body text-center">
+                <i class="fas fa-file-alt fa-3x text-warning mb-3"></i>
+                <h5 class="card-title">سجلات النشاط</h5>
+                <p class="card-text">عرض ومراجعة سجلات العمليات</p>
+                <a href="{{ url_for('view_logs') }}" class="btn btn-warning">
+                    <i class="fas fa-eye me-2"></i>عرض السجلات
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    {% if user_level in ['admin', 'user'] %}
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card border-success">
+            <div class="card-body text-center">
+                <i class="fas fa-graduation-cap fa-3x text-success mb-3"></i>
+                <h5 class="card-title">المواد التعليمية</h5>
+                <p class="card-text">دروس ومواد تعليمية في الأمن السيبراني</p>
+                <a href="{{ url_for('educational') }}" class="btn btn-success">
+                    <i class="fas fa-book me-2"></i>التعلم
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card border-info">
+            <div class="card-body text-center">
+                <i class="fas fa-shield-alt fa-3x text-info mb-3"></i>
+                <h5 class="card-title">أدوات الحماية</h5>
+                <p class="card-text">نصائح وأدوات لحماية الأنظمة</p>
+                <button class="btn btn-info" onclick="showProtectionTips()">
+                    <i class="fas fa-lightbulb me-2"></i>عرض النصائح
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card border-secondary">
+            <div class="card-body text-center">
+                <i class="fas fa-cog fa-3x text-secondary mb-3"></i>
+                <h5 class="card-title">الإعدادات</h5>
+                <p class="card-text">إعدادات الحساب والأمان</p>
+                <button class="btn btn-secondary" onclick="showSettings()">
+                    <i class="fas fa-wrench me-2"></i>الإعدادات
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if user_level == 'guest' %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="alert alert-info">
+            <h5><i class="fas fa-info-circle me-2"></i>مرحباً بك كضيف</h5>
+            <p>يمكنك الوصول للمواد التعليمية والنصائح الأساسية. للحصول على صلاحيات أكثر، يرجى التواصل مع المدير.</p>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Modal للنصائح -->
+<div class="modal fade" id="tipsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">نصائح الحماية الأساسية</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-lock text-primary me-2"></i>حماية كلمات المرور</h6>
+                        <ul class="small">
+                            <li>استخدم كلمات مرور قوية ومعقدة</li>
+                            <li>فعل المصادقة الثنائية</li>
+                            <li>لا تشارك كلمات المرور</li>
+                            <li>غير كلمات المرور بانتظام</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-shield-alt text-success me-2"></i>حماية النظام</h6>
+                        <ul class="small">
+                            <li>حدث نظام التشغيل باستمرار</li>
+                            <li>استخدم برامج مكافحة الفيروسات</li>
+                            <li>تجنب البرامج المشبوهة</li>
+                            <li>اعمل نسخ احتياطية منتظمة</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal للإعدادات -->
+<div class="modal fade" id="settingsModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">إعدادات الحساب</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">مستوى الوصول الحالي</label>
+                    <input type="text" class="form-control" value="{{ user_level }}" readonly>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">وقت تسجيل الدخول</label>
+                    <input type="text" class="form-control" value="{{ session.login_time|int }}" readonly>
+                </div>
+                <div class="alert alert-warning">
+                    <small>لتغيير مستوى الوصول، يرجى التواصل مع المدير</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function showProtectionTips() {
+    new bootstrap.Modal(document.getElementById('tipsModal')).show();
+}
+
+function showSettings() {
+    new bootstrap.Modal(document.getElementById('settingsModal')).show();
+}
+</script>
+{% endblock %}
